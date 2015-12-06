@@ -99,6 +99,8 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
     public static boolean mMultiFilterBoolean = true;
     public static int mCustomFilterType;
     public static boolean mTimerUnlimited = true;
+    public static boolean mHideTimerStory = false;
+    public static boolean mLoopingVids = true;
     public static boolean mHideTimer = false;
     public static boolean mToastEnabled = true;
     public static boolean mVibrationEnabled = true;
@@ -217,6 +219,8 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
         mDebugging = prefs.getBoolean("pref_key_debug_mode", mDebugging);
         mOverlays = prefs.getBoolean("pref_key_overlay", mOverlays);
         mTimerUnlimited = prefs.getBoolean("pref_key_timer_unlimited", mTimerUnlimited);
+        mHideTimerStory = prefs.getBoolean("pref_key_timer_story_hide", mHideTimerStory);
+        mLoopingVids = prefs.getBoolean("pref_key_looping_video", mLoopingVids);
         mHideTimer = prefs.getBoolean("pref_key_timer_hide", mHideTimer);
 
 
@@ -408,6 +412,12 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
                 //SNAPPREFS
                 Saving.initSaving(lpparam, mResources, SnapContext);
                 Lens.initLens(lpparam, mResources, SnapContext);
+                File vfilters = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Snapprefs/VisualFilters/xpro_map.png");
+                if(vfilters.exists()){
+                    VisualFilters.initVisualFilters(lpparam);
+                } else {
+                    Toast.makeText(context, "VisualFilter files are missing, download them!", Toast.LENGTH_SHORT).show();
+                }
                 if (mMultiFilterBoolean == true){
                     MultiFilter.initMultiFilter(lpparam, mResources, SnapContext);
                 }
@@ -620,6 +630,8 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
         logging("~ mSortByCategory: " + mSortByCategory);
         logging("~ mSortByUsername: " + mSortByUsername);
         logging("~ mTimerUnlimited: " + mTimerUnlimited);
+        logging("~ mHideTimerStory: " + mHideTimerStory);
+        logging("~ mLoopingVids: " + mLoopingVids);
         logging("~ mHideTimer: " + mHideTimer);
     }
 
