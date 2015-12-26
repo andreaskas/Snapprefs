@@ -1,6 +1,7 @@
 package com.marz.snapprefs;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -44,6 +45,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -362,6 +364,9 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
             XposedUtils.log("Exception while trying to get version info", e);
             return;
         }
+        findAndHookMethod("android.app.Application", lpparam.classLoader, "attach", Context.class, new XC_MethodHook(){
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
         refreshPreferences();
         printSettings();
         if (mLicense == 1 || mLicense == 2) {
@@ -386,7 +391,7 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
             findAndHookMethod(Obfuscator.ROOTDETECTOR_CLASS, lpparam.classLoader, s, XC_MethodReplacement.returnConstant(false));
             Logger.log("ROOTCHECK: " + s, true);
         }
-        findAndHookMethod("XU", lpparam.classLoader, "h", String.class, XC_MethodReplacement.DO_NOTHING);
+        findAndHookMethod("adq", lpparam.classLoader, "h", String.class, XC_MethodReplacement.DO_NOTHING);
         findAndHookMethod("android.media.MediaRecorder", lpparam.classLoader, "setMaxDuration", int.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -441,7 +446,7 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
                 }
 
                 getEditText(lpparam);
-                findAndHookMethod(Obfuscator.save.SCREENSHOTDETECTOR_CLASS, lpparam.classLoader, Obfuscator.save.SCREENSHOTDETECTOR_RUN, List.class, XC_MethodReplacement.DO_NOTHING);
+                findAndHookMethod(Obfuscator.save.SCREENSHOTDETECTOR_CLASS, lpparam.classLoader, Obfuscator.save.SCREENSHOTDETECTOR_RUN, LinkedHashMap.class, XC_MethodReplacement.DO_NOTHING);
                 findAndHookMethod(Obfuscator.save.SNAPSTATEMESSAGE_CLASS, lpparam.classLoader, Obfuscator.save.SNAPSTATEMESSAGE_SETSCREENSHOTCOUNT, Long.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -454,6 +459,7 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
                 }
             }
         };
+
         findAndHookMethod("com.snapchat.android.LandingPageActivity", lpparam.classLoader, "onCreate", Bundle.class, initHook);
         findAndHookMethod("com.snapchat.android.LandingPageActivity", lpparam.classLoader, "onResume", initHook);
 
@@ -527,6 +533,10 @@ public class HookMethods implements IXposedHookInitPackageResources, IXposedHook
         if (selectAll == true) {
             HookSendList.initSelectAll(lpparam);
         }
+
+
+            }
+        });
     }
 
 

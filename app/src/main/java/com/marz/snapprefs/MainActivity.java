@@ -14,8 +14,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.Html;
 import android.view.View;
@@ -49,9 +47,6 @@ public class MainActivity extends Activity {
         UUID deviceUuid = new UUID(androidId.hashCode(), ((long) tmDevice.hashCode() << 32) | tmSerial.hashCode());
         String deviceId = deviceUuid.toString();
         final String confirmationID = readStringPreference("confirmation_id");
-        getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        getActionBar().setCustomView(R.layout.abs);
-        getActionBar().setBackgroundDrawable(colorDrawable);
         final Context context = this;
         ChangeLog cl = new ChangeLog(context);
         if (cl.isFirstRun()) {
@@ -60,6 +55,9 @@ public class MainActivity extends Activity {
         //getFragmentManager().beginTransaction().replace(android.R.id.content, new Settings()).commit();
         //PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         setContentView(R.layout.activity_main);
+        getActionBar().setDisplayShowCustomEnabled(true);
+        getActionBar().setCustomView(R.layout.abs);
+        getActionBar().setBackgroundDrawable(colorDrawable);
         Button settings = (Button) findViewById(R.id.settings);
         Button filterStore = (Button) findViewById(R.id.filterStore);
         Button reedem = (Button) findViewById(R.id.reedem);
@@ -71,7 +69,7 @@ public class MainActivity extends Activity {
         SC_text.setPaintFlags(SC_text.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         settings.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                getFragmentManager().beginTransaction().replace(R.id.frame_layout, new Settings()).commit();
+                getFragmentManager().beginTransaction().replace(R.id.frame_layout, new Settings()).addToBackStack("preferences").commit();
                 PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
             }
         });
