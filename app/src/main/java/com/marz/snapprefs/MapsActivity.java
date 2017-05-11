@@ -38,14 +38,15 @@ public class MapsActivity extends Activity {
 
             @Override
             public void onMapLongClick(LatLng location) {
-                FileUtils.writeToSDFile(String.valueOf(location.latitude), "latitude");
-                FileUtils.writeToSDFile(String.valueOf(location.longitude), "longitude");
+                FileUtils.writeToSDFolder(String.valueOf(location.latitude), "latitude");
+                FileUtils.writeToSDFolder(String.valueOf(location.longitude), "longitude");
                 Toast.makeText(MapsActivity.this, "Spoofing location for " + location.toString(), Toast.LENGTH_SHORT).show();
             }
         });
         map.getUiSettings().setZoomControlsEnabled(true);
         // Getting reference to btn_find of the layout activity_main
         Button btn_find = (Button) findViewById(R.id.btn_find);
+        Button btn_reset = (Button) findViewById(R.id.btn_reset);
 
         // Defining button click event listener for the find button
         OnClickListener findClickListener = new OnClickListener() {
@@ -64,9 +65,17 @@ public class MapsActivity extends Activity {
                 }
             }
         };
+        OnClickListener resetClickListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FileUtils.writeToSDFolder(String.valueOf(-91), "latitude");
+                FileUtils.writeToSDFolder(String.valueOf(-181), "longitude");
+            }
+        };
 
         // Setting button click event listener for the find button
         btn_find.setOnClickListener(findClickListener);
+        btn_reset.setOnClickListener(resetClickListener);
     }
 
     // An AsyncTask class for accessing the GeoCoding Web Service
@@ -94,7 +103,7 @@ public class MapsActivity extends Activity {
                 Toast.makeText(getBaseContext(), "No Location found", Toast.LENGTH_SHORT).show();
             }
             // Adding Markers on Google Map for each matching address
-            Address address = (Address) addresses.get(0);
+            Address address = addresses.get(0);
 
             // Creating an instance of GeoPoint, to display in Google Map
             LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());

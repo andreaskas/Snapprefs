@@ -1,6 +1,11 @@
 package com.marz.snapprefs;
 
 public final class Common {
+    // Integer to be incremented for each build(To ensure proper hook checking)
+    public static final int MODULE_ENABLED_CHECK_INT = 20;
+    public static final int MODULE_STATUS_NOT_ACTIVATED = 0;
+    public static final int MODULE_STATUS_NOT_RESTARTED = 1;
+    public static final int MODULE_STATUS_ACTIVATED = 2;
     // Debugging settings
     public static final String LOG_TAG = "SnapPrefs: ";
     // Adjustment methods
@@ -15,9 +20,11 @@ public final class Common {
     public static final int MAX_VIDEO_SIZE = (int) (2.50 * 1024 * 1024);
     final static String basename = "com.snapchat.android";
     final static String PACKAGE_SNAP = "com.snapchat.android";
+    final static String PACKAGE_SP = "com.marz.snapprefs";
     final static String dialog_default = "Default";
-    final static String dialog_cancel = "Cancel";
-    final static String dialog_done = "Done";
+    final static String dialog_reset = "Reset";
+    public final static String dialog_cancel = "Cancel";
+    public final static String dialog_done = "Done";
     final static String dialog_title = "SnapPrefs Colour Manager";
     final static String dialog_txtcolour = "Text Colour";
     final static String dialog_txtstyle = "Text Style";
@@ -391,10 +398,6 @@ public final class Common {
 
     };
     // Preferences and their default values
-    public static int ROTATION_MODE = ROTATION_CW;
-    public static int ADJUST_METHOD = ADJUST_CROP;
-    public static boolean CAPTION_UNLIMITED_VANILLA = false;
-    public static boolean CAPTION_UNLIMITED_FAT = false;
     public static boolean DEBUGGING = true;
     public static boolean CHECK_SIZE = true;
     public static boolean TIMBER = false;

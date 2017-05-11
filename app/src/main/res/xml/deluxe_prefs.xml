@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:sample="http://schemas.android.com/apk/lib/com.marz.snapprefs" xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_key_viewed"
+        android:summaryOff="@string/pref_viewed_summary_off"
+        android:summaryOn="@string/pref_viewed_summary_on"
+        android:title="@string/pref_viewed_title" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_key_stealth_chat_saving"
+        android:summaryOff="@string/pref_stealth_chat_saving_summary_off"
+        android:summaryOn="@string/pref_stealth_chat_saving_summary_on"
+        android:title="@string/pref_stealth_chat_saving_title"/>
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_key_stealth_notification"
+        android:summaryOff="@string/pref_stealth_notification_summary_off"
+        android:summaryOn="@string/pref_stealth_notification_summary_on"
+        android:title="@string/pref_stealth_notification_title"/>
+
+    <com.pavelsikun.seekbarpreference.SeekBarPreferenceCompat
+        android:key="pref_key_save_button_opacity"
+        android:title="@string/pref_save_button_opacity_title"
+        android:enabled="true"
+        android:defaultValue="100"
+        sample:msbp_minValue="0"
+        sample:msbp_maxValue="100"
+        sample:msbp_interval="1"
+        sample:msbp_measurementUnit="%"
+        sample:msbp_dialogEnabled="true"/>
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="pref_key_save_button_opacity_resize"
+        android:summaryOff="@string/pref_key_save_button_opacity_resize_summary_off"
+        android:summaryOn="@string/pref_key_save_button_opacity_resize_summary_on"
+        android:title="@string/pref_key_save_button_opacity_resize_title"/>
+    <Preference
+        android:key="pref_viewed_readme"
+        android:summary="@string/pref_viewed_readme_summary"
+        android:title="@string/pref_discover_readme_title" />
+</PreferenceScreen>

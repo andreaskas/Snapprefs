@@ -26,12 +26,21 @@ import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import com.marz.snapprefs.Util.CommonUtils;
+import com.marz.snapprefs.Util.FileUtils;
+import com.yalantis.ucrop.UCrop;
+import com.yalantis.ucrop.UCropActivity;
+
+import java.io.File;
 
 /**
  * This Activity has an intent-filter to receive images and videos.
@@ -45,6 +54,7 @@ import com.marz.snapprefs.Util.CommonUtils;
  * work necessary to let the image or video be shown.
  */
 public class ReceiveMediaActivity extends Activity implements DialogInterface.OnClickListener {
+    public static SharedPreferences prefs = null;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,24 +63,81 @@ public class ReceiveMediaActivity extends Activity implements DialogInterface.On
         String action = intent.getAction();
         String type = intent.getType();
 
-        if (type != null && Intent.ACTION_SEND.equals(action) && (type.startsWith("image/") || type.startsWith("video/"))) {
-            Uri mediaUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        Logger.log("ReceiveMediaActivity: createPrefsIfNotExisting");
+        createPrefsIfNotExisting();
 
-            if (mediaUri != null) {
-                Log.d(Common.LOG_TAG, "Received Media share of type " + type + "\nand URI " + mediaUri.toString() + "\nCalling hooked Snapchat with same Intent.");
-                if (CommonUtils.isModuleEnabled()) {
-                    intent.setComponent(ComponentName.unflattenFromString("com.snapchat.android/.LandingPageActivity"));
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                } else {
-                    createXposedDialog().show();
-                    finish = false;
+        if (Preferences.getMap() == null || Preferences.getMap().isEmpty()) {
+            Logger.log("ReceiveMediaActivity: Map is null or empty: Loading new");
+            Preferences.loadMap(prefs);
+        }
+
+        try {
+            if (type != null && Intent.ACTION_SEND.equals(action) && (type.startsWith("image/") || type.startsWith("video/"))) {
+                Uri mediaUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+
+                if (mediaUri != null) {
+                    File directory = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Snapprefs/temp");
+                    directory.mkdirs();
+                    for (File f : directory.listFiles()) {
+                        if (f.getName().toLowerCase().startsWith("share")) f.delete();
+                    }
+                    File out = File.createTempFile("share", ".no_media", directory);
+                    Log.d(Common.LOG_TAG, "Received Media share of type " + type + "\nand URI " + mediaUri.toString() + "\nCalling hooked Snapchat with same Intent.");
+                    if (CommonUtils.getModuleStatus() == Common.MODULE_STATUS_ACTIVATED) {
+                        if (type.startsWith("image/")) {
+                            finish = false;
+                            if(Preferences.getInt(Preferences.Prefs.ADJUST_METHOD) == Common.ADJUST_SCALE){
+                                FileUtils.saveStream(getContentResolver().openInputStream(mediaUri), out);
+                                intent.setComponent(ComponentName.unflattenFromString("com.snapchat.android/.LandingPageActivity"));
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(out));
+                                startActivity(intent);
+                            } else {
+                                UCrop.Options options = new UCrop.Options();
+                                options.setAllowedGestures(UCropActivity.ALL, UCropActivity.ALL, UCropActivity.ALL);
+                                options.setCompressionFormat(Bitmap.CompressFormat.PNG);
+                                options.setCompressionQuality(100);
+                                UCrop.of(mediaUri, Uri.fromFile(out))
+                                        .withAspectRatio(9, 16)
+                                        .withMaxResultSize(1080, 1920)
+                                        .withOptions(options)
+                                        .start(this);
+                            }
+                        } else {
+                            FileUtils.saveStream(getContentResolver().openInputStream(mediaUri), out);
+                            intent.setComponent(ComponentName.unflattenFromString("com.snapchat.android/.LandingPageActivity"));
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(out));
+                            startActivity(intent);
+                        }
+                    } else {
+                        createXposedDialog().show();
+                        finish = false;
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         // Finish this activity
         if (finish) {
             finish();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            final Uri resultUri = UCrop.getOutput(data);
+            Intent intent = getIntent();
+            intent.putExtra(Intent.EXTRA_STREAM, resultUri);
+            intent.setComponent(ComponentName.unflattenFromString("com.snapchat.android/.LandingPageActivity"));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            cropError.printStackTrace();
         }
     }
 
@@ -82,7 +149,11 @@ public class ReceiveMediaActivity extends Activity implements DialogInterface.On
     private AlertDialog createXposedDialog() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_DeviceDefault_Dialog));
         dialogBuilder.setTitle(getString(R.string.app_name));
-        dialogBuilder.setMessage(getString(R.string.module_not_enabled));
+        if(CommonUtils.getModuleStatus() == Common.MODULE_STATUS_NOT_ACTIVATED) {
+            dialogBuilder.setMessage(getString(R.string.module_not_enabled));
+        } else {
+            dialogBuilder.setMessage(getString(R.string.device_needs_restart_for_update));
+        }
         dialogBuilder.setPositiveButton(getString(R.string.open_xposed_installer), this);
         dialogBuilder.setNegativeButton(getString(R.string.close), this);
         return dialogBuilder.create();
@@ -94,5 +165,21 @@ public class ReceiveMediaActivity extends Activity implements DialogInterface.On
             CommonUtils.openXposedInstaller(ReceiveMediaActivity.this);
         }
         finish();
+    }
+
+    public SharedPreferences createPrefsIfNotExisting() {
+        if(prefs != null)
+            return prefs;
+
+        File prefsFile = new File(
+                Environment.getDataDirectory(), "data/"
+                + getPackageName() + "/shared_prefs/" + getPackageName()
+                + "_preferences" + ".xml");
+        prefsFile.setReadable(true, false);
+        Logger.log("Creating preference object : " + this.getPackageName());
+
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        return prefs;
     }
 }
